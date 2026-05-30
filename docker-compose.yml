@@ -1,0 +1,45 @@
+services:
+  fe:
+    image: dyrnq/doris:4.1.1
+    container_name: doris-fe
+    hostname: doris-fe
+    privileged: true
+    environment:
+      RUN_MODE: FE
+      TZ: Asia/Singapore
+    ports:
+      - "9030:9030"   # MySQL wire (SQL client / scripts)
+      - "8030:8030"   # FE Web UI  → http://localhost:8030
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    volumes:
+      - doris-fe-meta:/opt/apache-doris/fe/doris-meta
+    healthcheck:
+      test: ["CMD-SHELL",
+             "mysql -uroot -P9030 -h127.0.0.1 --connect-timeout=3 -e 'SELECT 1' 2>/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+      start_period: 60s
+
+  be:
+    image: dyrnq/doris:4.1.1
+    container_name: doris-be
+    hostname: doris-be
+    privileged: true
+    environment:
+      RUN_MODE: BE
+      FE_SERVERS: "fe1:doris-fe:9010"   # format: name:host:edit_log_port
+      BE_ADDR: "doris-be:9050"          # how FE registers this BE
+      TZ: Asia/Singapore
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    volumes:
+      - doris-be-storage:/opt/apache-doris/be/storage
+    depends_on:
+      fe:
+        condition: service_healthy
+
+volumes:
+  doris-fe-meta:
+  doris-be-storage:

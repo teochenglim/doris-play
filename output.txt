@@ -1,0 +1,215 @@
+[0;34m╔══════════════════════════════════════════════╗[0m
+[0;34m║  Waiting for Doris …[0m
+[0;34m╚══════════════════════════════════════════════╝[0m
+
+⏳  Waiting for Doris FE at 127.0.0.1:9030 ...
+✅  FE is ready  (attempt 1)
+⏳  Waiting for at least one BE to be alive ...
+✅  Backend is alive  (attempt 1)
+
+[0;34m╔══════════════════════════════════════════════╗[0m
+[0;34m║  DEMO 1 · Setup – DB, tables, LLM resource[0m
+[0;34m╚══════════════════════════════════════════════╝[0m
+
+[0;36mℹ️   Running 01_setup.sql …[0m
+[0;32m✅  Done[0m
+
+[0;34m╔══════════════════════════════════════════════╗[0m
+[0;34m║  DEMO 2 · Full-Text Search (SEARCH() DSL + BM25)[0m
+[0;34m╚══════════════════════════════════════════════╝[0m
+
+[0;36mℹ️   Running 02_fulltext.sql …[0m
+demo
+--- 2a: TERM query: articles about "vector" ---
+id	title	author
+1	Vector Databases Explained	Alice Tan
+2	Apache Doris 4.0 Breakthrough	Bob Lee
+4	RAG Architecture Best Practices	David Kim
+demo
+--- 2b: BM25 scoring for "vector database search" ---
+id	title	bm25
+5	Elasticsearch vs Apache Doris for Search	1.6219
+2	Apache Doris 4.0 Breakthrough	0.4671
+1	Vector Databases Explained	0.3956
+4	RAG Architecture Best Practices	0.3665
+6	LLM Observability and Log Analytics	0.2877
+demo
+--- 2c: Boolean – doris AND (search OR analytics) NOT elasticsearch ---
+id	title
+6	LLM Observability and Log Analytics
+3	Real-Time Analytics with Apache Doris
+2	Apache Doris 4.0 Breakthrough
+demo
+--- 2d: Phrase – "noise cancelling" in reviews ---
+id	product	stars	snippet
+1	Sony WH-1000XM5	5	Absolutely love the noise cancelling – best headphones I have ever owned. Batter
+demo
+--- 2e: Hybrid – "noise" in reviews AND stars >= 4 ---
+id	product	stars	snippet
+1	Sony WH-1000XM5	5	Absolutely love the noise cancelling – best headphones I have ever owned. Batter
+demo
+--- 2f: Aggregate – avg stars for reviews mentioning "battery" ---
+product	total_reviews	avg_stars
+Sony WH-1000XM5	1	5
+Kindle Paperwhite	1	2
+[0;32m✅  Done[0m
+
+[0;34m╔══════════════════════════════════════════════╗[0m
+[0;34m║  DEMO 3 · AI Functions (LLM calls from SQL)[0m
+[0;34m╚══════════════════════════════════════════════╝[0m
+
+[0;36mℹ️   Running 03_ai_functions.sql …[0m
+demo
+--- 3a: AI_SENTIMENT on all reviews ---
+id	product	stars	sentiment
+1	Sony WH-1000XM5	5	positive
+2	Sony WH-1000XM5	3	mixed
+3	Kindle Paperwhite	5	positive
+4	Kindle Paperwhite	2	negative
+5	DJI Mini 4 Pro	5	positive
+6	DJI Mini 4 Pro	2	negative
+7	Instant Pot Duo	5	positive
+8	Instant Pot Duo	3	negative
+9	Apple AirPods Pro 2	5	positive
+10	Apple AirPods Pro 2	2	negative
+demo
+--- 3b: AI_CLASSIFY – tag each review topic ---
+id	product	main_topic
+1	Sony WH-1000XM5	sound quality
+2	Sony WH-1000XM5	call quality
+3	Kindle Paperwhite	value for money
+4	Kindle Paperwhite	value for money
+5	DJI Mini 4 Pro	value for money
+6	DJI Mini 4 Pro	call quality
+7	Instant Pot Duo	ease of use
+8	Instant Pot Duo	ease of use
+9	Apple AirPods Pro 2	ease of use
+10	Apple AirPods Pro 2	value for money
+demo
+--- 3c: AI_SUMMARIZE – one-line summary per review ---
+id	product	summary
+1	Sony WH-1000XM5	The user loves their new headphones, praising their noise-cancelling feature, long battery life, and excellent sound quality for both music and podcasts.
+2	Sony WH-1000XM5	The headphones have good sound quality, but average call quality due to excessive background noise pickup by the mic. Active Noise Cancellation (ANC) is a strong feature.
+3	Kindle Paperwhite	A reading light with a warm light setting that's gentle on the eyes, waterproof and suitable for avid readers.
+4	Kindle Paperwhite	The device's battery life is shorter than anticipated, and its synchronization with Audible is experiencing technical issues, despite still being functional, which is somewhat frustrating given its cost.
+5	DJI Mini 4 Pro	The drone offers excellent video quality, effective obstacle avoidance, and simple setup, making it an impressive value at its price point.
+6	DJI Mini 4 Pro	The device has poor wind resistance, losing connectivity in moderate breezes, and customer support failed to assist with this problem.
+7	Instant Pot Duo	The user has found the appliance to be convenient for cooking various dishes, including soups, stews, and rice, and also appreciates its sauté function.
+8	Instant Pot Duo	The product has a seal ring that needs to be replaced periodically due to absorbing smells, but otherwise performs well for daily cooking tasks.
+9	Apple AirPods Pro 2	The wireless earbuds have several features, including transparency mode that allows hearing external sounds while wearing them, a comfortable fit for extended wear, and quick charging capabilities.
+10	Apple AirPods Pro 2	The user is unhappy with their earbuds, finding them overpriced and experiencing issues with one of them developing a crackling sound after only 3 months. Despite Apple's replacement policy, the repair process took too long.
+demo
+--- 3d: AI_EXTRACT – pull out pros and cons ---
+id	product	extracted
+1	Sony WH-1000XM5	pros=Exceptional sound quality, battery lasts forever, \ncons=None
+3	Kindle Paperwhite	pros=Perfect for reading in bed, cons=None
+4	Kindle Paperwhite	pros=None, cons=Battery drains faster than expected and the sync with Audible is buggy. Still usable but disappointing for the price.
+5	DJI Mini 4 Pro	pros=Video quality is stunning and the obstacle avoidance works great, setup was easy even for a beginner, cons=None
+6	DJI Mini 4 Pro	pros="", cons="Wind resistance is poor – loses connection in moderate breeze, Customer support was unhelpful when I reported the issue."
+7	Instant Pot Duo	pros=Changes cooking method to save time, cons=None
+9	Apple AirPods Pro 2	pros=Transparency mode is magical – I can hear traffic without removing them, fit is comfortable for hours, the case charges fast, cons=None
+10	Apple AirPods Pro 2	pros=Apple replaced it, cons=Expensive for what they are, One earbud developed a crackling sound after 3 months, the process was slow.
+demo
+--- 3e: AI_FILTER – reviews that mention a hardware defect ---
+id	product	stars	snippet
+1	Sony WH-1000XM5	5	Absolutely love the noise cancelling – best headphones I have ever owned. Batter
+7	Instant Pot Duo	5	Changed how I cook. Soups, stews, rice – all perfect. Saves so much time versus 
+6	DJI Mini 4 Pro	2	Wind resistance is poor – loses connection in moderate breeze. Customer support 
+10	Apple AirPods Pro 2	2	Expensive for what they are. One earbud developed a crackling sound after 3 mont
+3	Kindle Paperwhite	5	Perfect for reading in bed. The warm light setting is easy on the eyes. Waterpro
+5	DJI Mini 4 Pro	5	Incredible drone for the price. Video quality is stunning and the obstacle avoid
+9	Apple AirPods Pro 2	5	Transparency mode is magical – I can hear traffic without removing them. Fit is 
+2	Sony WH-1000XM5	3	Great headphones but the call quality is mediocre. Mic picks up too much backgro
+4	Kindle Paperwhite	2	Battery drains faster than expected and the sync with Audible is buggy. Still us
+8	Instant Pot Duo	3	Seal ring absorbs smells permanently. Had to buy a replacement. Otherwise a soli
+demo
+--- 3f: HSAP – FTS filter THEN LLM sentiment analysis ---
+id	product	bm25	sentiment
+4	Kindle Paperwhite	0.974	negative
+1	Sony WH-1000XM5	0.656	positive
+[0;32m✅  Done[0m
+
+[0;34m╔══════════════════════════════════════════════╗[0m
+[0;34m║  DEMO 4 · Vector Search (HNSW + ANN)[0m
+[0;34m╚══════════════════════════════════════════════╝[0m
+
+
+────────────────────────────────────────────────────────────
+  Generating embeddings via http://localhost:11434/v1 …
+────────────────────────────────────────────────────────────
+  ✅  8 embeddings  (dim=1024)
+
+────────────────────────────────────────────────────────────
+  Recreating products table with real vectors …
+────────────────────────────────────────────────────────────
+  ✅  Inserted 8 products with 1024-d vectors
+
+────────────────────────────────────────────────────────────
+  ANN query: "wireless noise cancelling headphones"
+────────────────────────────────────────────────────────────
+  ID   Name                                     Category            Price  dist
+  ──   ──────────────────────────────────────   ────────            ─────  ────
+  1    Sony WH-1000XM5 Headphones               Electronics      $ 349.99  0.8055
+  8    Bose QuietComfort 45                     Electronics      $ 279.99  0.8951
+  2    Apple AirPods Pro 2                      Electronics      $ 249.99  0.9354
+
+────────────────────────────────────────────────────────────
+  ANN query: "beginner-friendly flying camera drone"
+────────────────────────────────────────────────────────────
+  ID   Name                                     Category            Price  dist
+  ──   ──────────────────────────────────────   ────────            ─────  ────
+  4    DJI Mini 4 Pro Drone                     Electronics      $ 759.99  0.8523
+  7    Dyson V15 Detect Vacuum                  Home             $ 749.99  1.0984
+  6    LEGO Technic Ferrari                     Toys             $  89.99  1.1008
+
+────────────────────────────────────────────────────────────
+  ANN query: "kitchen appliance for fast cooking"
+────────────────────────────────────────────────────────────
+  ID   Name                                     Category            Price  dist
+  ──   ──────────────────────────────────────   ────────            ─────  ────
+  5    Instant Pot Duo 7-in-1                   Kitchen          $  99.99  0.8806
+  7    Dyson V15 Detect Vacuum                  Home             $ 749.99  1.0458
+  4    DJI Mini 4 Pro Drone                     Electronics      $ 759.99  1.0622
+
+────────────────────────────────────────────────────────────
+  Hybrid search: "premium audio" · Electronics · price < 300
+────────────────────────────────────────────────────────────
+  ID   Name                                        Price  dist
+
+✅  Vector demo complete
+
+[0;32m✅  Vector demo complete[0m
+
+[0;34m╔══════════════════════════════════════════════╗[0m
+[0;34m║  DEMO 5 · HSAP – Hybrid Search Analytics[0m
+[0;34m╚══════════════════════════════════════════════╝[0m
+
+[0;36mℹ️   Running 05_hsap.sql …[0m
+demo
+--- 5a: How many articles exist per topic? ---
+topic	articles
+Doris Analytics	3
+Vector / Embedding	3
+LLM / RAG	1
+demo
+--- 5b: Recent articles about "search" after 2024-02-10, ranked by BM25 ---
+id	title	author	published	bm25
+5	Elasticsearch vs Apache Doris for Search	Eva Lim	2024-02-20	1.6344
+6	LLM Observability and Log Analytics	Frank Ho	2024-02-25	0.2877
+4	RAG Architecture Best Practices	David Kim	2024-02-15	0.1833
+demo
+--- 5c: Electronics under $300 mentioning "noise" ---
+id	name	category	price
+8	Bose QuietComfort 45	Electronics	279.99
+2	Apple AirPods Pro 2	Electronics	249.99
+demo
+--- 5d: Star distribution for reviews mentioning "battery" ---
+stars	reviews	bar
+5	1	★★★★★
+2	1	★★
+demo
+--- 5e: Articles referencing audio products ---
+[0;32m✅  Done[0m
+
+[0;32m🎉  All demos complete![0m
+[0;36m    Web UI → http://localhost:8030  (user: root, no password)[0m
