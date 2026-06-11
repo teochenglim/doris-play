@@ -38,7 +38,7 @@ services:
       - doris-be-storage:/opt/apache-doris/be/storage
     depends_on:
       fe:
-        condition: service_healthy
+        condition: service_started
 
 volumes:
   doris-fe-meta:
